@@ -1,0 +1,3 @@
+Pay with Bitcoin, a digital currency. <a href="https://coinbase.com">Learn more about Bitcoin</a>
+<% param_prefix = "payment_source[#{payment_method.id}]" %>
+<%= hidden_field_tag "#{param_prefix}[use_coinbase]", "true" %>
