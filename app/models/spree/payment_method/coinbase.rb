@@ -2,27 +2,22 @@ module Spree
   class PaymentMethod::Coinbase < PaymentMethod
     preference :api_key, :string
     preference :api_secret, :string
+    preference :use_off_site_payment_page, :boolean
 
     def auto_capture?
-      true
+      false
     end
 
     def provider_class
       nil
     end
 
-    def purchase(amount, source, gateway_options)
-
-
-      ActiveMerchant::Billing::Response.new(true, "%{amount} and options %{YAML::dump(gateway_options)}", {}, {})
-    end
-
     def payment_source_class
-      Spree::PaymentMethod::Coinbase::DummySource
+      nil
     end
 
     def source_required?
-      true
+      false
     end
   end
 end

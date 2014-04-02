@@ -1,5 +1,4 @@
-# Sample localization file for English. Add more files in this directory for other locales.
-# See https://github.com/svenfuchs/rails-i18n/tree/master/rails%2Flocale for starting points.
-
 en:
-  hello: "Hello world"
+  spree:
+    spree_coinbase_checkout_error: "There was an error while checking out. Please use a different payment method."
+    spree_coinbase_checkout_cancelled: "Payment cancelled."

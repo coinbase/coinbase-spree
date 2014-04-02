@@ -1,1 +1,5 @@
-<%= YAML::dump(@payment.log_entries.first) %>
+<p>
+	Coinbase order ID: <%= @payment.source.order_id %><br>
+	Coinbase button ID: <%= @payment.source.button_id  %><br>
+	Secret token: <%= @payment.source.secret_token %>
+</p>

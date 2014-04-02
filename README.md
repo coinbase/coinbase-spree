@@ -1,10 +1,12 @@
-SpreeCoinbase
+Spree Coinbase Plugin
 =============
 
-Introduction goes here.
+Accept bitcoin payments on your Spree store with the official Coinbase Spree plugin. For more information on Coinbase for merchants, visit https://coinbase.com/merchants.
 
 Installation
 ------------
+
+If you don't have a Coinbase account, sign up at https://coinbase.com/merchants. Coinbase offers daily payouts for merchants in the United States. For more infomation on setting up payouts, see https://coinbase.com/docs/merchant_tools/payouts.
 
 Add spree_coinbase to your Gemfile:
 
@@ -19,22 +21,22 @@ bundle
 bundle exec rails g spree_coinbase:install
 ```
 
-Testing
--------
+After installing the gem, go to your Spree admin console and navigate to Configuration > Payment Methods > New Payment Method.
 
-Be sure to bundle your dependencies and then create a dummy test app for the specs to run against.
+![Configuration](http://i.imgur.com/iGs9l6H.png)
 
-```shell
-bundle
-bundle exec rake test_app
-bundle exec rspec spec
-```
+Select "Spree::PaymentMethod::Coinbase" from the "Provider" dropdown, enter a name (like "Bitcoin") for the payment method, and click "Create."
 
-When testing your applications integration with this extension you may use it's factories.
-Simply add this require statement to your spec_helper:
+![New Payment Method](http://i.imgur.com/5bdGElv.png)
 
-```ruby
-require 'spree_coinbase/factories'
-```
+Go to https://coinbase.com/settings/api and click '+ New API Key' to generate an API key and secret for this plugin. You should create a 'HMAC' key with the permission 'merchant' only.
 
-Copyright (c) 2014 [name of extension creator], released under the New BSD License
+After generating the API key, click on the shortened representation of it (looks like 'kcyPDdpjgYk...') to view the full API Key + Secret. Copy and paste the API key and API secret into the respective fields on the Edit Payment Method page, then click "Update".
+
+Remember to enable the API key on the https://coinbase.com/settings/api page by clicking the "Enable" link. If the API key is not enabled, the plugin will not work.
+
+![Edit Payment Method](http://i.imgur.com/UJImHrA.png)
+
+The plugin should now be active!
+
+Copyright (c) 2014 Coinbase, released under the New BSD License
