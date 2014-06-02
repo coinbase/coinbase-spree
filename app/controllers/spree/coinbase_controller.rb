@@ -31,14 +31,13 @@ module Spree
 		code = result["button"]["code"]
 
 		if code
-			# Add a "processing" payment that is used to verify the callback
+			# Add a payment in "checkout" state that is used to verify the callback
 			transaction = CoinbaseTransaction.new
 			transaction.button_id = code
 			transaction.secret_token = secret_token
-			payment = order.payments.create({:amount => order.total,
+			payment = order.payments.create({:amount => 0,
 											:source => transaction,
 											:payment_method => payment_method })
-			payment.started_processing!
 
 			use_off_site = payment_method.preferred_use_off_site_payment_page
 			redirect_to "https://coinbase.com/%1$s/%2$s" % [use_off_site ? "checkouts" : "inline_payments", code]
@@ -70,7 +69,7 @@ module Spree
 		order_id = cb_order["custom"]
 		order = Spree::Order.find(order_id)
 		button_id = cb_order["button"]["id"]
-		payments = order.payments.where(:state => "processing",
+		payments = order.payments.where(:state => "checkout",
                                       :payment_method_id => payment_method)
 		payment = nil
 		payments.each do |p|
@@ -96,7 +95,7 @@ module Spree
  		transaction.save
 
  		# Make payment pending -> make order complete -> make payment complete -> update order
- 		payment.pend!
+ 		payment.amount = order.total
  		order.next
  		if !order.complete?
  			render text: "Could not transition order: %s" % order.errors
@@ -154,7 +153,7 @@ module Spree
 
 	# the coinbase-ruby gem is not used because of its dependence on incompatible versions of the money gem
 	def make_coinbase_request verb, path, options
-		
+
 		key = payment_method.preferred_api_key
 		secret = payment_method.preferred_api_secret
 
