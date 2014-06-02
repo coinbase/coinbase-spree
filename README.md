@@ -1,6 +1,8 @@
 Spree Coinbase Plugin
 =============
 
+[Using Spree 2.1? Use the 2-1-stable branch - click here.](https://github.com/coinbase/coinbase-spree/tree/2-1-stable)
+
 Accept bitcoin payments on your Spree store with the official Coinbase Spree plugin. For more information on Coinbase for merchants, visit https://coinbase.com/merchants.
 
 Installation
