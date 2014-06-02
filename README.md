@@ -1,4 +1,4 @@
-Spree Coinbase Plugin
+Spree Coinbase Plugin (Spree 2.1)
 =============
 
 Accept bitcoin payments on your Spree store with the official Coinbase Spree plugin. For more information on Coinbase for merchants, visit https://coinbase.com/merchants.
@@ -11,7 +11,7 @@ If you don't have a Coinbase account, sign up at https://coinbase.com/merchants.
 Add spree_coinbase to your Gemfile:
 
 ```ruby
-gem 'spree_coinbase'
+gem 'spree_coinbase', github: 'coinbase/coinbase-spree', branch: '2-1-stable'
 ```
 
 Bundle your dependencies and run the installation generator:
