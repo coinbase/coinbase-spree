@@ -4,7 +4,7 @@ module Spree
     preference :api_secret, :string
     preference :use_off_site_payment_page, :boolean
 
-    def auto_capture?
+    def auto_capture
       false
     end
 
