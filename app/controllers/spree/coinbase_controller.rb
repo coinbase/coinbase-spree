@@ -1,9 +1,8 @@
 require 'httparty'
+require 'coinbase'
 
 module Spree
   class CoinbaseController < StoreController
-  	include HTTParty
-  	ssl_ca_file File.expand_path(File.join(File.dirname(__FILE__), 'ca-coinbase.crt'))
   	skip_before_filter :verify_authenticity_token
 
 	def redirect
@@ -15,22 +14,32 @@ module Spree
 		end
 
 		# Create Coinbase button code
-		secret_token = SecureRandom.base64(30)
-		button_params = { :button => {
-				:name => "Order #%s" % order.number,
-				:price_string => order.total,
-				:price_currency_iso => order.currency,
-				:custom => order.id,
-				:custom_secure => true,
-				:callback_url => spree_coinbase_callback_url(:payment_method_id => params[:payment_method_id], :secret_token => secret_token),
-				:cancel_url => spree_coinbase_cancel_url(:payment_method_id => params[:payment_method_id]),
-				:success_url => spree_coinbase_success_url(:payment_method_id => params[:payment_method_id], :order_num => order.number),
-				:info_url => root_url(),
-				} }
-		result = make_coinbase_request :post, "/buttons", button_params
-		code = result["button"]["code"]
+		key = payment_method.preferred_api_key
+		secret = payment_method.preferred_api_secret
 
-		if code
+		if key.nil? || secret.nil?
+			raise "Please enter an API key and secret in Spree payment method settings"
+		end
+
+		begin
+			secret_token = SecureRandom.base64(30)
+
+			name = "Order #%s" % order.number
+			price = order.total.to_money(order.currency)
+			custom = order.id
+			button_options = {
+				:button => {
+					:custom_secure => true,
+					:callback_url => spree_coinbase_callback_url(:payment_method_id => params[:payment_method_id], :secret_token => secret_token),
+					:cancel_url => spree_coinbase_cancel_url(:payment_method_id => params[:payment_method_id]),
+					:success_url => spree_coinbase_success_url(:payment_method_id => params[:payment_method_id], :order_num => order.number),
+					:info_url => root_url(),
+				}
+			}
+
+			result = coinbase_client.create_button name, price, nil, custom, button_options
+			code = result.button.code
+
 			# Add a "processing" payment that is used to verify the callback
 			transaction = CoinbaseTransaction.new
 			transaction.button_id = code
@@ -42,7 +51,10 @@ module Spree
 
 			use_off_site = payment_method.preferred_use_off_site_payment_page
 			redirect_to "https://coinbase.com/%1$s/%2$s" % [use_off_site ? "checkouts" : "inline_payments", code]
-		else
+
+		rescue Exception => e
+			logger.error e.message
+			logger.error e.backtrace.inspect
 			redirect_to edit_order_checkout_url(order, :state => 'payment'),
                     :notice => Spree.t(:spree_coinbase_checkout_error)
 		end
@@ -51,25 +63,25 @@ module Spree
 	def callback
 
 		# Download order information from Coinbase (do not trust sent order information)
-		cb_order_id = params["order"]["id"]
-		cb_order = make_coinbase_request :get, "/orders/%s" % cb_order_id, {}
-
-		if cb_order.nil?
- 			render text: "Invalid order ID", status: 400
+		begin
+			cb_order_id = params["order"]["id"]
+			cb_order = coinbase_client.order cb_order_id
+		rescue
+			render text: "Error retrieving order information", status: 400
  			return
-		end
+ 		end
 
-		cb_order = cb_order["order"]
+		cb_order = cb_order.order
 
-		if cb_order["status"] != "completed"
+		if cb_order.status != "completed"
  			render text: "Invalid order status", status: 400
  			return
 		end
 
 		# Fetch Spree order information, find relevant payment, and verify button_id
-		order_id = cb_order["custom"]
+		order_id = cb_order.custom
 		order = Spree::Order.find(order_id)
-		button_id = cb_order["button"]["id"]
+		button_id = cb_order.button.id
 		payments = order.payments.where(:state => "processing",
                                       :payment_method_id => payment_method)
 		payment = nil
@@ -152,30 +164,18 @@ module Spree
 		m
 	end
 
-	# the coinbase-ruby gem is not used because of its dependence on incompatible versions of the money gem
-	def make_coinbase_request verb, path, options
-		
-		key = payment_method.preferred_api_key
-		secret = payment_method.preferred_api_secret
+	def coinbase_client
+		@coinbase_client ||= begin
+			key = payment_method.preferred_api_key
+			secret = payment_method.preferred_api_secret
 
-		if key.nil? || secret.nil?
-			raise "Please enter an API key and secret in Spree payment method settings"
+			if key.nil? || secret.nil?
+				raise "Please enter an API key and secret in Spree payment method settings"
+			end
+
+			Coinbase::Client.new(key, secret)
 		end
-
-		base_uri = "https://coinbase.com/api/v1"
-		nonce = (Time.now.to_f * 1e6).to_i
-		message = nonce.to_s + base_uri + path + options.to_json
-		signature = OpenSSL::HMAC.hexdigest(OpenSSL::Digest::Digest.new('sha256'), secret, message)
-
-		headers = {
-		'ACCESS_KEY' => key,
-		'ACCESS_SIGNATURE' => signature,
-		'ACCESS_NONCE' => nonce.to_s,
-		"Content-Type" => "application/json",
-		}
-
-		r = self.class.send(verb, base_uri + path, {headers: headers, body: options.to_json})
-		JSON.parse(r.body)
 	end
+
   end
 end
