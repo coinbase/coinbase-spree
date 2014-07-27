@@ -42,8 +42,8 @@ module Spree
 			use_off_site = payment_method.preferred_use_off_site_payment_page
 			redirect_to "https://coinbase.com/%1$s/%2$s" % [use_off_site ? "checkouts" : "inline_payments", code]
 		else
-			redirect_to edit_order_checkout_url(order, :state => 'payment'),
-                    :notice => Spree.t(:spree_coinbase_checkout_error)
+			flash.notice = Spree.t(:spree_coinbase_checkout_error)
+			redirect_to checkout_state_path(order.state)
 		end
 	end
 
@@ -125,8 +125,9 @@ module Spree
 			end
  		end
 
-		redirect_to edit_order_checkout_url(order, :state => 'payment'),
-			:notice => Spree.t(:spree_coinbase_checkout_cancelled)
+
+		flash.notice = Spree.t(:spree_coinbase_checkout_cancelled)
+		redirect_to checkout_state_path(order.state)
 	end
 
 	def success
