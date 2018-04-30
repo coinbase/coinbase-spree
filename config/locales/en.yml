@@ -1,4 +1,0 @@
-en:
-  spree:
-    spree_coinbase_checkout_error: "There was an error while checking out. Please use a different payment method."
-    spree_coinbase_checkout_cancelled: "Payment cancelled."

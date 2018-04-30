@@ -1,8 +1,0 @@
-Pay with bitcoin, a digital currency. Payment instructions will be displayed after you click 'Save and Continue'.
-<script type="text/javascript">
-	SpreeCoinbase.paymentMethodId = <%= payment_method.id %>;
-	SpreeCoinbase.useOffSite = <%= payment_method.preferred_use_off_site_payment_page == true %>;
-	SpreeCoinbase.checkoutUrl = "<%= j spree_coinbase_redirect_url(:payment_method_id => payment_method.id).html_safe %>";
-	SpreeCoinbase.cancelUrl = "<%= j spree_coinbase_cancel_url(:payment_method_id => payment_method.id).html_safe %>";
-	SpreeCoinbase.successUrl = "<%= j spree_coinbase_success_url(:payment_method_id => payment_method.id, :order_num => current_order.number).html_safe %>";
-</script>
